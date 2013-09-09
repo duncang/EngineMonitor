@@ -1,8 +1,14 @@
 
 
-#include <CAN.h>
+//#include <CAN.h>
 #include <SPI.h>
+#include "Adafruit_MAX31855.h"
 
+int thermoDO = 50;
+int thermoCS = 49;
+int thermoCLK = 52;
+
+Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
 
 #define BUS_SPEED 100
 
@@ -13,8 +19,8 @@
    See http://arduino.cc/en/Main/ArduinoBoardMega2560 
    and http://arduino.cc/en/Reference/AttachInterrupt 
  */
-#define RPM_INT 5 
-#define RPM_PIN 18  
+#define RPM_INT 0 
+#define RPM_PIN 2  
 
 int pin;
 int fuel_state;
@@ -42,11 +48,14 @@ void setup()
 
   // initialize CAN bus class
   // this class initializes SPI communications with MCP2515
-  CAN.begin();
-  CAN.baudConfig(BUS_SPEED);
-  CAN.setMode(LOOPBACK);  // set to "NORMAL" for standard com
+//  CAN.begin();
+//  CAN.baudConfig(BUS_SPEED);
+//  CAN.setMode(LOOPBACK);  // set to "NORMAL" for standard com
   
   pin = LOW;  
+  
+  delay(500);
+    
   
 }
 
@@ -76,10 +85,23 @@ void loop()
      rpm_count = 0;   
   }
   
+//   Serial.print("Internal Temp = ");
+//   Serial.println(thermocouple.readInternal());
+
+
+  
+   double cht = thermocouple.readCelsius();
+   if (isnan(cht)) {
+      cht = 0.;
+   }
+   
+   
   Serial.print("Fuel: ");
   Serial.print(fuel_state,DEC);
   Serial.print(" RPM: ");
   Serial.print(rpm, DEC);
+  Serial.print(" CHT: ");
+  Serial.print(cht, DEC);
   Serial.println();
   
   
