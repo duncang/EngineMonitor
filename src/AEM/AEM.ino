@@ -14,6 +14,8 @@ Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
 
 #define FUEL_LL_PIN  3
 
+#define IGN_BATT_PIN 2 // analog pin 0
+
 
 /* Attach hall sensor to interrupt 5 - 
    See http://arduino.cc/en/Main/ArduinoBoardMega2560 
@@ -28,6 +30,8 @@ int fuel_state;
 volatile unsigned long rpm_count;
 unsigned long last_time;
 unsigned short rpm;
+
+unsigned long ign_batt_mV;
 
 void setup()
 {
@@ -45,6 +49,11 @@ void setup()
   attachInterrupt(RPM_INT,rpm_tick,RISING);
   rpm_count = 0;
   last_time = millis();
+  
+  
+  // setup ignition battery
+  ign_batt_mV = 0;
+  analogReference(EXTERNAL);
 
   // initialize CAN bus class
   // this class initializes SPI communications with MCP2515
@@ -61,7 +70,8 @@ void setup()
 
 void loop()
 {
-
+  static unsigned long loopCount=0;
+  ++loopCount;
     
   //signal iterations on pin 8
   digitalWrite(8,pin);  
@@ -69,24 +79,17 @@ void loop()
   // read fuel sensor status - HIGH = FUEL LOW; LOW = FUEL PRESENT
   fuel_state = digitalRead(FUEL_LL_PIN);
   
-  //digitalWrite(7,(fuel_state == 1) ? HIGH : LOW);
   digitalWrite(7,fuel_state);
   
   // update RPM
-  if (rpm_count > 20)
-  {
+  unsigned long time_now = millis();
+  unsigned long time_since = time_now - last_time;
+  rpm = (60000 * rpm_count)/time_since ;
     
-     unsigned long time_now = millis();
-     unsigned long time_since = time_now - last_time;
-     
-     rpm = (60000 * rpm_count)/time_since ;
-    
-     last_time = time_now;
-     rpm_count = 0;   
-  }
-  
-//   Serial.print("Internal Temp = ");
-//   Serial.println(thermocouple.readInternal());
+  last_time = time_now;
+  rpm_count = 0;
+
+
 
 
   
@@ -96,12 +99,18 @@ void loop()
    }
    
    
+   // read ignition battery
+   ign_batt_mV = analogRead(IGN_BATT_PIN);// * 1204 / 100;  // TODO: fix scale factor
+   
   Serial.print("Fuel: ");
   Serial.print(fuel_state,DEC);
   Serial.print(" RPM: ");
   Serial.print(rpm, DEC);
   Serial.print(" CHT: ");
   Serial.print(cht, DEC);
+  Serial.print(" IGN BATT: ");
+  Serial.print(ign_batt_mV,DEC);
+  
   Serial.println();
   
   
@@ -119,7 +128,17 @@ void loop()
 
 void rpm_tick()
 {
-  ++rpm_count;
+  // debounce
+  static unsigned long last;
+  unsigned long now = millis();
+  if (now - last > 1)
+  {
+    ++rpm_count;
+  }  
+  
+  last = now;
+  
+  //Serial.print(".");
 }
 
 
