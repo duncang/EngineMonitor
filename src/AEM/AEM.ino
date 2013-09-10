@@ -14,7 +14,7 @@ Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
 
 #define FUEL_LL_PIN  3
 
-#define IGN_BATT_PIN 2 // analog pin 0
+#define IGN_BATT_PIN 0 // analog pin 0
 
 
 /* Attach hall sensor to interrupt 5 - 
@@ -53,7 +53,7 @@ void setup()
   
   // setup ignition battery
   ign_batt_mV = 0;
-  analogReference(EXTERNAL);
+  analogReference(DEFAULT);
 
   // initialize CAN bus class
   // this class initializes SPI communications with MCP2515
@@ -100,7 +100,8 @@ void loop()
    
    
    // read ignition battery
-   ign_batt_mV = analogRead(IGN_BATT_PIN);// * 1204 / 100;  // TODO: fix scale factor
+   ign_batt_mV = analogRead(IGN_BATT_PIN);
+   ign_batt_mV = (ign_batt_mV * 1204) / 100;  // TODO: fix scale factor
    
   Serial.print("Fuel: ");
   Serial.print(fuel_state,DEC);
