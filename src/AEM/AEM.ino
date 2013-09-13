@@ -37,6 +37,7 @@ void setup()
 {
 
   Serial.begin(9600);
+  Serial1.begin(57600);
 
   // status LEDs
   pinMode(7,OUTPUT);
@@ -103,7 +104,8 @@ void loop()
    ign_batt_mV = analogRead(IGN_BATT_PIN);
    ign_batt_mV = (ign_batt_mV * 1204) / 100;  // TODO: fix scale factor
    
-  Serial.print("Fuel: ");
+  Serial.print(time_now,DEC);
+  Serial.print(" Fuel: ");
   Serial.print(fuel_state,DEC);
   Serial.print(" RPM: ");
   Serial.print(rpm, DEC);
@@ -113,6 +115,19 @@ void loop()
   Serial.print(ign_batt_mV,DEC);
   
   Serial.println();
+  
+  // transmit on radio modem
+  Serial1.print(time_now,DEC);
+  Serial1.print(" Fuel: ");
+  Serial1.print(fuel_state,DEC);
+  Serial1.print(" RPM: ");
+  Serial1.print(rpm, DEC);
+  Serial1.print(" CHT: ");
+  Serial1.print(cht, DEC);
+  Serial1.print(" IGN BATT: ");
+  Serial1.print(ign_batt_mV,DEC);
+  
+  Serial1.println();
   
   
     
