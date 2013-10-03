@@ -91,12 +91,17 @@ void loop()
   rpm_count = 0;
 
 
-
-
+  // check if sensor functioning
+  double internal = thermocouple.readInternal();
+  if (isnan (internal) || internal == 0.)
+  {
+     Serial.print("### THERMOCOUPLE FAULT - Internal ####"); 
+  }
   
    double cht = thermocouple.readCelsius();
    if (isnan(cht)) {
       cht = 0.;
+      Serial.print("### THERMOCOUPLE FAULT - External ####"); 
    }
    
    
